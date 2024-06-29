@@ -1,52 +1,67 @@
 <template>
-  <div class="list-comp">
-    <h1>同学列表</h1>
-    <div class="tool-bar">
-      <button class="add-btn" type="primary" @click="openAddModal">新增</button>
+  <div class="list-comp p-6">
+    <h1 class="text-center text-2xl font-bold mb-4">同学列表</h1>
+    <div class="tool-bar flex justify-end mb-4">
+      <button class="add-btn bg-gray-700 text-white py-2 px-4 rounded" @click="openAddModal">新增</button>
     </div>
     
-    <ul>
-      <li>
-        <span class="No">序号</span>
-        <span class="study-code">学号</span>
-        <span class="name">姓名</span>
-        <span class="age">年龄</span>
-        <div class="operation">操作</div>
+    <ul class="space-y-6">
+      <li class="flex justify-start items-center h-16 bg-gray-700 text-white px-6">
+        <span class="No w-1/5">序号</span>
+        <span class="study-code w-1/5">学号</span>
+        <span class="name w-1/5">姓名</span>
+        <span class="age w-1/5">年龄</span>
+        <div class="operation flex-grow flex justify-around">
+          操作
+        </div>
       </li>
-      <li v-for="(item, index) in classmates.list" :key="item.id">
-        <span class="No">{{ index + 1 }}</span>
-        <span class="study-code">{{ item.id }}</span>
-        <span class="name">{{ item.userName }}</span>
-        <span class="age">{{ item.age }}</span>
-        <div class="operation">
-          <button @click="deleteUser(index)">删除</button>
-          <button @click="openEditModal(index)">编辑</button>
-          <button @click="getYourName(item.id)">问名字</button>
+      <li v-for="(item, index) in classmates.list" :key="item.id" class="flex justify-start items-center h-16 border-b border-gray-400 px-6">
+        <span class="No w-1/5">{{ index + 1 }}</span>
+        <span class="study-code w-1/5">{{ item.id }}</span>
+        <span class="name w-1/5">{{ item.userName }}</span>
+        <span class="age w-1/5">{{ item.age }}</span>
+        <div class="operation flex-grow flex justify-around space-x-2">
+          <button class="bg-blue-500 text-white py-2 px-2 rounded flex items-center justify-center space-x-1" @click="deleteUser(index)">
+            <span>删</span>
+            <span>除</span>
+          </button>
+
+          <button class="bg-yellow-500 text-white py-2 px-4 rounded flex items-center justify-center space-x-1" @click="openEditModal(index)">
+            <span>编</span>
+            <span>辑</span>
+          </button>
+
+          <button class="bg-green-500 text-white py-2 px-4 rounded flex items-center justify-center space-x-1" @click="getYourName(item.id)">
+            <span>问</span>
+            <span>名</span>
+            <span>字</span>
+          </button>
+
         </div>
       </li>
     </ul>
-    <div class="pop-blank" v-if="showFlag">
-      <h3>{{ isEdit ? '编辑同学' : '新增同学' }}</h3>
-      <div class="blank-body">
-        <div class="blank-item">
+    <div class="pop-blank fixed inset-0 bg-white border border-gray-700 rounded-lg p-6 flex flex-col items-center max-w-lg mx-auto my-16" v-if="showFlag">
+      <h3 class="text-lg font-semibold mb-4">{{ isEdit ? '编辑同学' : '新增同学' }}</h3>
+      <div class="blank-body flex-grow flex flex-col w-full">
+        <div class="blank-item flex flex-col mb-4">
           <span>学号：</span>
-          <input type="text" v-model="studyNum" @input="validateStudyNum">
-          <p v-if="errors.studyNum" class="error">{{ errors.studyNum }}</p>
+          <input type="text" v-model="studyNum" @input="validateStudyNum" class="h-9 px-2 text-lg border border-gray-300 rounded">
+          <p v-if="errors.studyNum" class="error text-red-500 text-sm">{{ errors.studyNum }}</p>
         </div>
-        <div class="blank-item">
+        <div class="blank-item flex flex-col mb-4">
           <span>姓名：</span>
-          <input type="text" v-model="name" @input="validateName">
-          <p v-if="errors.name" class="error">{{ errors.name }}</p>
+          <input type="text" v-model="name" @input="validateName" class="h-9 px-2 text-lg border border-gray-300 rounded">
+          <p v-if="errors.name" class="error text-red-500 text-sm">{{ errors.name }}</p>
         </div>
-        <div class="blank-item">
+        <div class="blank-item flex flex-col mb-4">
           <span>年龄：</span>
-          <input type="text" v-model="year" @input="validateYear">
-          <p v-if="errors.year" class="error">{{ errors.year }}</p>
+          <input type="text" v-model="year" @input="validateYear" class="h-9 px-2 text-lg border border-gray-300 rounded">
+          <p v-if="errors.year" class="error text-red-500 text-sm">{{ errors.year }}</p>
         </div>
       </div>
-      <div class="footer">
-        <button type="primary" @click="submitFn">确定</button>
-        <button type="primary" @click="showFlag=false">取消</button>
+      <div class="footer flex justify-end w-full">
+        <button class="bg-blue-500 text-white py-2 px-4 rounded mr-2" @click="submitFn">确定</button>
+        <button class="bg-white text-blue-500 border border-blue-500 py-2 px-4 rounded" @click="showFlag=false">取消</button>
       </div>
     </div>
   </div>
@@ -159,12 +174,10 @@ const submitFn = () => {
 
     if (isEdit.value) {
       classmates.editClassmate(currentIndex.value, student);
-      // 将编辑的同学移动到列表的第一位
       const editedStudent = classmates.list.splice(currentIndex.value, 1)[0];
       classmates.list.unshift(editedStudent);
     } else {
       classmates.addClassmate(student);
-      // 将新增的同学移动到列表的最后一位
       const addedStudent = classmates.list.pop();
       classmates.list.push(addedStudent);
     }
@@ -181,122 +194,8 @@ const getYourName = (id) => {
 };
 </script>
 
-<style lang="less" scoped>
-.list-comp {
-  text-align: left;
-}
-h1 {
-  text-align: center;
-}
-.tool-bar {
-  display: flex;
-  justify-content: flex-end;
-  .add-btn {
-    margin-right: 24px;
-    background-color: dimgray;
-    color: aliceblue;
-    width: 90px;
-  }
-}
-ul {
-  text-align: center;
-  padding-left: 24px;
-  padding-right: 24px;
-}
-.pop-blank {
-  position: absolute;
-  background-color: #ffffff;
-  border-radius: 8px;
-  left: 50%;
-  top: 50%;
-  width: 400px; /* 修改宽度 */
-  height: auto;
-  transform: translate(-50%, -50%);
-  padding: 24px;
-  border: 1px solid dimgray;
-  display: flex;
-  flex-direction: column;
-  h3 {
-    text-align: center;
-  }
-  .blank-body {
-    flex-grow: 1;
-    flex-shrink: 1;
-    display: flex;
-    flex-direction: column;
-    .blank-item {
-      height: auto;
-      font-size: 16px;
-      display: flex;
-      flex-direction: column;
-      margin-bottom: 16px;
-      span {
-        margin-bottom: 8px;
-        width: 100%;
-      }
-      input {
-        height: 36px;
-        width: 100%;
-        font-size: 16px;
-        box-sizing: border-box; /* 确保输入框宽度包含内边距和边框 */
-      }
-    }
-  }
-  .footer {
-    display: flex;
-    justify-content: flex-end;
-    width: 100%;
-    button {
-      background-color: blue;
-      color: white;
-      height: 36px; /* 确保按钮高度一致 */
-    }
-    &>button:nth-child(1) {
-      margin-right: 12px;
-      background-color: white;
-      color: blue;
-      border: 1px solid blue;
-    }
-  }
-}
-li {
-  list-style: none;
-  display: flex;
-  justify-content: flex-start;
-  align-items: flex-start;
-  margin-bottom: 24px;
-  height: 64px;
-  border-bottom: 1px solid dimgray;
-  &:nth-child(1) {
-    color: aliceblue;
-    background-color: dimgray;
-    align-items: center;
-  }
-  .No {
-    width: 18%;
-  }
-  .study-code {
-    width: 18%;
-  }
-  .name {
-    width: 18%;
-  }
-  .age {
-    width: 18%;
-  }
-  .operation {
-    flex-grow: 1;
-    display: flex;
-    justify-content: space-around;
-    &>button {
-      background-color: lavender;
-      color: slateblue;
-      width: 90px;
-    }
-  }
-}
+<style scoped>
 .error {
-  color: red;
-  font-size: 12px;
+  @apply text-red-500 text-sm;
 }
 </style>

@@ -1,6 +1,6 @@
 <template>
-  <div class="app">
-    <h1>同学管理系统</h1>
+  <div class="app max-w-3xl mx-auto p-5 font-sans">
+    <h1 class="text-3xl font-bold mb-5">同学管理系统</h1>
     <ClassmateForm @add-classmate="addClassmate" />
     <ClassmateList
       :classmates="classmates"
@@ -44,36 +44,6 @@ export default {
 };
 </script>
 
-<style>
-.app {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 20px;
-  font-family: Arial, sans-serif;
-}
-
-button {
-  background-color: #4CAF50; /* Green */
-  border: none;
-  color: white;
-  padding: 10px 20px;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  font-size: 16px;
-  margin: 4px 2px;
-  cursor: pointer;
-  border-radius: 4px;
-  transition: background-color 0.3s, transform 0.3s;
-}
-
-button:hover {
-  background-color: #45a049;
-  transform: scale(1.05);
-}
-
-button:active {
-  background-color: #3e8e41;
-  transform: scale(1);
-}
+<style scoped>
+/* 不再需要任何样式，因为所有样式都已通过 Tailwind CSS 类处理 */
 </style>
