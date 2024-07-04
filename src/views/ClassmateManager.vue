@@ -7,6 +7,12 @@
       @edit-classmate="editClassmate"
       @delete-classmate="deleteClassmate"
     />
+    <router-link to="/3d" class="ml-4">
+      <a-button type="primary">查看3D页面</a-button>
+    </router-link>
+     <router-link to="/d" class="ml-4">
+        <a-button type="primary">查看动画页面</a-button>
+      </router-link>
   </div>
 </template>
 

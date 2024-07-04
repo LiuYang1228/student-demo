@@ -2,200 +2,336 @@
   <div class="list-comp p-6">
     <h1 class="text-center text-2xl font-bold mb-4">同学列表</h1>
     <div class="tool-bar flex justify-end mb-4">
-      <button class="add-btn bg-gray-700 text-white py-2 px-4 rounded" @click="openAddModal">新增</button>
+      <a-button type="primary" class="add-btn" @click="openAddModal">新增</a-button>
     </div>
     
-    <ul class="space-y-6">
-      <li class="flex justify-start items-center h-16 bg-gray-700 text-white px-6">
-        <span class="No w-1/5">序号</span>
-        <span class="study-code w-1/5">学号</span>
-        <span class="name w-1/5">姓名</span>
-        <span class="age w-1/5">年龄</span>
-        <div class="operation flex-grow flex justify-around">
-          操作
-        </div>
-      </li>
-      <li v-for="(item, index) in classmates.list" :key="item.id" class="flex justify-start items-center h-16 border-b border-gray-400 px-6">
-        <span class="No w-1/5">{{ index + 1 }}</span>
-        <span class="study-code w-1/5">{{ item.id }}</span>
-        <span class="name w-1/5">{{ item.userName }}</span>
-        <span class="age w-1/5">{{ item.age }}</span>
-        <div class="operation flex-grow flex justify-around space-x-2">
-          <button class="bg-blue-500 text-white py-2 px-2 rounded flex items-center justify-center space-x-1" @click="deleteUser(index)">
-            <span>删</span>
-            <span>除</span>
-          </button>
+    <!-- 学生列表表格 -->
+    <a-table :columns="columns" :dataSource="classmates.list" rowKey="id" class="mb-4">
+      <template #bodyCell="{ text, record, column, index }">
+        <template v-if="column.key === 'actions'">
+          <div class="operation flex justify-around space-x-2">
+            <a-button type="primary" danger ghost @click="deleteUser(record.id)">
+              <span>删除</span>
+            </a-button>
+            <template v-if="!record.editable">
+              <a-button type="primary" ghost @click="startEdit(record)">
+                <span>编辑</span>
+              </a-button>
+            </template>
+            <template v-else>
+              <a-button type="primary" @click="saveEdit(record)">
+                <span>保存</span>
+              </a-button>
+              <a-button @click="cancelEdit(record)">
+                <span>取消</span>
+              </a-button>
+            </template>
+            <a-button type="dashed" @click="getYourName(record.id)">
+              <span>问名字</span>
+            </a-button>
+          </div>
+        </template>
+        <template v-else>
+          <template v-if="record.editable && column.key === 'userName'">
+            <a-input v-model:value="record.tempUserName" />
+          </template>
+          <template v-else-if="record.editable && column.key === 'age'">
+            <a-input-number v-model:value="record.tempAge" :min="1" :max="100" style="width: 100%" />
+          </template>
+          <template v-else-if="column.key === 'id'">
+            <a-input v-if="!record.editable" :value="record.id" disabled />
+            <a-input v-else v-model:value="record.id" />
+          </template>
+          <template v-else-if="column.key === 'hobbies'">
+            <template v-if="record.editable">
+              <a-select v-model:value="record.tempHobbies">
+                <a-select-option v-for="hobby in hobbies" :key="hobby" :value="hobby">{{ hobby }}</a-select-option>
+              </a-select>
+            </template>
+            <template v-else>
+              <span>{{ renderHobbies(record) }}</span>
+            </template>
+          </template>
+          <template v-else-if="column.key === 'index'">
+            <span>{{ calculateIndex(index) }}</span>
+          </template>
+          <template v-else>
+            {{ text }}
+          </template>
+        </template>
+      </template>
+    </a-table>
 
-          <button class="bg-yellow-500 text-white py-2 px-4 rounded flex items-center justify-center space-x-1" @click="openEditModal(index)">
-            <span>编</span>
-            <span>辑</span>
-          </button>
+    <!-- 编辑/添加学生信息的模态框 -->
+    <a-modal v-model:open="modalVisible" title="编辑同学信息" @ok="handleModalOk" @cancel="handleModalCancel">
+      <a-form layout="vertical">
+        <a-form-item label="学号" name="id" :rules="[{ required: true, message: '请输入学号' }]" :validateTrigger="['change']">
+          <a-input v-model:value="formValues.id" />
+        </a-form-item>
+        <a-form-item label="姓名" name="userName" :rules="[{ required: true, message: '请输入姓名' }]" :validateTrigger="['change']">
+          <a-input v-model:value="formValues.userName" />
+        </a-form-item>
+        <a-form-item label="年龄" name="age" :rules="[{ required: true, message: '请输入年龄' }]" :validateTrigger="['change']">
+          <a-input-number v-model:value="formValues.age" :min="1" :max="100" style="width: 100%" />
+        </a-form-item>
+        <a-form-item label="兴趣爱好" name="hobbies" :rules="[{ required: true, message: '请输入兴趣爱好' }]" :validateTrigger="['change']">
+          <a-select v-model:value="formValues.hobbies">
+            <a-select-option v-for="hobby in hobbies" :key="hobby" :value="hobby">{{ hobby }}</a-select-option>
+          </a-select>
+        </a-form-item>
+      </a-form>
+    </a-modal>
 
-          <button class="bg-green-500 text-white py-2 px-4 rounded flex items-center justify-center space-x-1" @click="getYourName(item.id)">
-            <span>问</span>
-            <span>名</span>
-            <span>字</span>
-          </button>
-
-        </div>
-      </li>
-    </ul>
-    <div class="pop-blank fixed inset-0 bg-white border border-gray-700 rounded-lg p-6 flex flex-col items-center max-w-lg mx-auto my-16" v-if="showFlag">
-      <h3 class="text-lg font-semibold mb-4">{{ isEdit ? '编辑同学' : '新增同学' }}</h3>
-      <div class="blank-body flex-grow flex flex-col w-full">
-        <div class="blank-item flex flex-col mb-4">
-          <span>学号：</span>
-          <input type="text" v-model="studyNum" @input="validateStudyNum" class="h-9 px-2 text-lg border border-gray-300 rounded">
-          <p v-if="errors.studyNum" class="error text-red-500 text-sm">{{ errors.studyNum }}</p>
-        </div>
-        <div class="blank-item flex flex-col mb-4">
-          <span>姓名：</span>
-          <input type="text" v-model="name" @input="validateName" class="h-9 px-2 text-lg border border-gray-300 rounded">
-          <p v-if="errors.name" class="error text-red-500 text-sm">{{ errors.name }}</p>
-        </div>
-        <div class="blank-item flex flex-col mb-4">
-          <span>年龄：</span>
-          <input type="text" v-model="year" @input="validateYear" class="h-9 px-2 text-lg border border-gray-300 rounded">
-          <p v-if="errors.year" class="error text-red-500 text-sm">{{ errors.year }}</p>
-        </div>
-      </div>
-      <div class="footer flex justify-end w-full">
-        <button class="bg-blue-500 text-white py-2 px-4 rounded mr-2" @click="submitFn">确定</button>
-        <button class="bg-white text-blue-500 border border-blue-500 py-2 px-4 rounded" @click="showFlag=false">取消</button>
-      </div>
-    </div>
+    <!-- ECharts 饼图容器 -->
+    <div id="interestsChart" style="height: 400px;"></div>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue';
+import { ref, reactive, onMounted, h } from 'vue';
+import * as echarts from 'echarts';
 import { useClassmatesStore } from '../store/classmates';
 
 const classmates = useClassmatesStore();
-
-const showFlag = ref(false);
-const isEdit = ref(false);
-const currentIndex = ref(null);
-const studyNum = ref('');
-const name = ref('');
-const year = ref('');
-const errors = reactive({
-  studyNum: '',
-  name: '',
-  year: ''
+const modalVisible = ref(false);
+const formValues = reactive({
+  userName: '',
+  age: null,
+  id: null,
+  hobbies: '',
 });
 
-const openAddModal = () => {
-  isEdit.value = false;
-  studyNum.value = '';
-  name.value = '';
-  year.value = '';
-  resetErrors();
-  showFlag.value = true;
-};
-
-const openEditModal = (index) => {
-  isEdit.value = true;
-  currentIndex.value = index;
-  const item = classmates.list[index];
-  studyNum.value = item.id;
-  name.value = item.userName;
-  year.value = item.age;
-  resetErrors();
-  showFlag.value = true;
-};
-
-const deleteUser = (index) => {
-  classmates.deleteClassmate(index);
-};
-
-const validateStudyNum = () => {
-  if (!studyNum.value) {
-    errors.studyNum = '学号不能为空';
-  } else if (!/^\d+$/.test(studyNum.value)) {
-    errors.studyNum = '学号只能是数字';
-  } else if (classmates.list.some((item, idx) => item.id === parseInt(studyNum.value) && (idx !== currentIndex.value))) {
-    errors.studyNum = '学号已存在';
-  } else {
-    errors.studyNum = '';
-  }
-};
-
-const validateName = () => {
-  if (!name.value) {
-    errors.name = '姓名不能为空';
-  } else if (/^\d+$/.test(name.value)) {
-    errors.name = '姓名不能是数字';
-  } else {
-    errors.name = '';
-  }
-};
-
-const validateYear = () => {
-  if (!year.value) {
-    errors.year = '年龄不能为空';
-  } else if (!/^\d+$/.test(year.value) || year.value <= 0) {
-    errors.year = '年龄必须是大于0的数字';
-  } else {
-    errors.year = '';
-  }
-};
-
-const validateInputs = () => {
-  validateStudyNum();
-  validateName();
-  validateYear();
-  return !errors.studyNum && !errors.name && !errors.year;
-};
-
-const resetErrors = () => {
-  errors.studyNum = '';
-  errors.name = '';
-  errors.year = '';
-};
-
-const checkAndAppendName = (name, id) => {
-  let newName = name;
-  let count = 1;
-  while (classmates.list.some(item => item.userName === newName && item.id !== id)) {
-    newName = `${name}${count}`;
-    count++;
-  }
-  return newName;
-};
-
-const submitFn = () => {
-  if (validateInputs()) {
-    const student = {
-      id: parseInt(studyNum.value),
-      userName: checkAndAppendName(name.value, isEdit.value ? classmates.list[currentIndex.value].id : null),
-      age: parseInt(year.value)
-    };
-
-    if (isEdit.value) {
-      classmates.editClassmate(currentIndex.value, student);
-      const editedStudent = classmates.list.splice(currentIndex.value, 1)[0];
-      classmates.list.unshift(editedStudent);
-    } else {
-      classmates.addClassmate(student);
-      const addedStudent = classmates.list.pop();
-      classmates.list.push(addedStudent);
+const columns = [
+  {
+    title: '序号',
+    dataIndex: 'index',
+    key: 'index',
+  },
+  {
+    title: '学号',
+    dataIndex: 'id',
+    key: 'id',
+    customRender: ({ text, record }) => {
+      return record.editable ? record.id : text;
     }
-    showFlag.value = false;
-    studyNum.value = '';
-    name.value = '';
-    year.value = '';
+  },
+  {
+    title: '姓名',
+    dataIndex: 'userName',
+    key: 'userName',
+    customRender: ({ text, record }) => {
+      return record.editable ? record.tempUserName : text;
+    }
+  },
+  {
+    title: '年龄',
+    dataIndex: 'age',
+    key: 'age',
+    customRender: ({ text, record }) => {
+      return record.editable ? record.tempAge : text;
+    }
+  },
+  {
+    title: '兴趣爱好',
+    dataIndex: 'hobbies',
+    key: 'hobbies',
+    customRender: ({ text, record }) => {
+      return record.editable ? renderEditHobbies(record) : renderHobbies(record);
+    }
+  },
+  {
+    title: '操作',
+    key: 'actions',
   }
+];
+
+const renderHobbies = (record) => {
+  if (record && record.hobbies) {
+    return  record.hobbies;
+  } else {
+    return '无'; // 可以返回一个默认值或者根据需要进行处理
+  }
+};
+
+const renderEditHobbies = (record) => {
+  const selectOptions = hobbies.map(hobby => {
+    return h('a-select-option', {
+      key: hobby,
+      value: hobby,
+    }, hobby);
+  });
+
+  return h('a-select', {
+    'v-model:value': record.tempHobbies,
+  }, selectOptions);
+};
+
+const startEdit = (record) => {
+  record.tempUserName = record.userName;
+  record.tempAge = record.age;
+  record.tempHobbies = record.hobbies;
+  record.editable = true;
+};
+
+const saveEdit = async (record) => {
+  const confirmed = confirm('确认保存修改吗？');
+  if (confirmed) {
+    try {
+      await saveToBackend(record);
+      record.userName = record.tempUserName;
+      record.age = record.tempAge;
+      record.hobbies = record.tempHobbies;
+      record.editable = false;
+
+      // Update the chart after saving edit
+      renderInterestsChart();
+    } catch (error) {
+      console.error('保存失败:', error);
+    }
+  }
+};
+
+const saveToBackend = async (record) => {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      resolve();
+    }, 1000);
+  });
+};
+
+const cancelEdit = (record) => {
+  record.editable = false;
 };
 
 const getYourName = (id) => {
   const student = classmates.list.find(item => item.id === id);
   alert(student.userName);
 };
+
+const openAddModal = () => {
+  modalVisible.value = true;
+  formValues.userName = '';
+  formValues.age = null;
+  formValues.id = null;
+  formValues.hobbies = '';
+};
+
+const handleModalOk = () => {
+  const isValid = validateForm();
+  if (isValid) {
+    const newStudent = {
+      id: formValues.id,
+      userName: formValues.userName,
+      age: formValues.age,
+      hobbies: formValues.hobbies,
+      editable: false,
+      tempUserName: '',
+      tempAge: null,
+      tempHobbies: '',
+    };
+    classmates.list.push(newStudent);
+    modalVisible.value = false;
+
+    // Update the chart after adding a new student
+    renderInterestsChart();
+  } else {
+    console.error('表单校验失败');
+  }
+};
+
+const validateForm = () => {
+  return !!formValues.id && !!formValues.userName && !!formValues.age && formValues.hobbies.length > 0 && /^\d+$/.test(formValues.id);
+};
+
+const handleModalCancel = () => {
+  modalVisible.value = false;
+};
+
+const deleteUser = async (id) => {
+  const confirmed = confirm('确认删除该用户吗？');
+  if (confirmed) {
+    try {
+      await deleteFromBackend(id);
+      classmates.list = classmates.list.filter(item => item.id !== id);
+
+      // Update the chart after deleting a student
+      renderInterestsChart();
+    } catch (error) {
+      console.error('删除失败:', error);
+    }
+  }
+};
+
+const deleteFromBackend = async (id) => {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      resolve();
+    }, 1000);
+  });
+};
+
+const calculateIndex = (index) => {
+  return index + 1;
+};
+
+// 模拟的兴趣爱好列表
+const hobbies = ['篮球', '足球', '游泳', '音乐', '旅行', '阅读','唱歌','跳舞','朗诵'];
+
+//兴趣爱好饼图
+const renderInterestsChart = () => {
+  const interestsChart = echarts.init(document.getElementById('interestsChart'));
+  const interestsData = hobbies.map(hobby => {
+    return {
+      name: hobby,
+      value: classmates.list.filter(student => student.hobbies === hobby).length
+    };
+  });
+
+  console.log(interestsData)
+  const options = {
+    title: {
+      text: '同学兴趣爱好分布',
+      left: 'center'
+    },
+    tooltip: {
+      trigger: 'item',
+      formatter: '{a} <br/>{b}: {c} ({d}%)'
+    },
+    series: [
+      {
+        name: '兴趣爱好',
+        type: 'pie',
+        radius: ['50%', '70%'],
+        avoidLabelOverlap: true,
+        label: {
+          show: true,
+          position: 'outside',
+          formatter: '{b}: {d}%'
+        },
+        emphasis: {
+          label: {
+            show: true,
+            fontSize: '16',
+            fontWeight: 'bold'
+          }
+        },
+        labelLine: {
+          show: true
+        },
+        data: interestsData
+      }
+    ]
+  };
+  interestsChart.setOption(options);
+};
+
+
+onMounted(() => {
+  renderInterestsChart();
+});
+
 </script>
 
 <style scoped>
-.error {
-  @apply text-red-500 text-sm;
-}
+/* 可选的样式代码 */
 </style>

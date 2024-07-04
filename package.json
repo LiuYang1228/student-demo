@@ -9,6 +9,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@babylonjs/core": "^7.13.1",
+    "@babylonjs/inspector": "^7.13.1",
+    "@babylonjs/loaders": "^7.13.1",
+    "@vue/babel-plugin-jsx": "^1.2.2",
+    "@vue/babel-preset-jsx": "^1.4.0",
+    "ant-design-vue": "^4.2.3",
+    "earcut": "^3.0.0",
+    "echarts": "^5.5.1",
     "less": "^4.2.0",
     "pinia": "^2.1.7",
     "vue": "^3.4.29",
